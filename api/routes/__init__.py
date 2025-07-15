@@ -1,0 +1,3 @@
+"""
+Routes package for F1 Web App API.
+"""

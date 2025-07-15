@@ -34,7 +34,7 @@ f1-web-app/
 
 ### Prerequisites
 
-- Python 3.8+ (Python 3.12 compatibility notes below)
+- Python 3.11
 - pip
 
 ### Installation
@@ -88,25 +88,6 @@ f1-web-app/
 - `GET /api/info/constructors?year=<year>`: Get constructor standings
 - `GET /api/info/next-event`: Get the next upcoming F1 event
 - `GET /api/info/schedule?year=<year>`: Get the F1 schedule
-
-## Python 3.12 Compatibility
-
-Python 3.12 has removed the `distutils` module from the standard library, which can cause compatibility issues with some packages. We've taken steps to ensure compatibility:
-
-1. Updated `requirements.txt` with packages that work with Python 3.12
-2. Added modern packaging dependencies that don't rely on `distutils`
-3. Provided a utility script to check for `distutils` warnings
-
-### Checking for Distutils Issues
-
-We've included a script to help identify any remaining `distutils` issues:
-
-```bash
-# Run the script to check for distutils warnings
-python scripts/check_distutils_warnings.py
-```
-
-See the [scripts README](scripts/README.md) for more details.
 
 ## License
 

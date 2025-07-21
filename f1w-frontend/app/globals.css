@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --f1-red: #e10600;
+  --f1-dark: #15151e;
+}
+
+@layer base {
+  :root {
+    --font-sans: var(--font-inter);
+    --font-mono: var(--font-roboto-mono);
+  }
+}
+
+@layer components {
+  .visualization-container {
+    @apply relative mb-5 flex justify-center items-center;
+  }
+  
+  .card-hover {
+    @apply transition-transform duration-300 hover:-translate-y-1;
+  }
+  
+  .f1-button {
+    @apply bg-[#e10600] text-white px-4 py-2 rounded-md hover:bg-[#c10500] transition-colors;
+  }
+  
+  .f1-card {
+    @apply bg-[#1e1e2a] rounded-lg shadow-lg overflow-hidden;
+  }
+  
+  .f1-card-header {
+    @apply bg-[#15151e] text-white font-bold p-4;
+  }
+  
+  .f1-card-body {
+    @apply p-4;
+  }
+}
+
+/* Chart.js styling */
+.chart-container {
+  @apply w-full h-full;
+}
+
+.chart-tooltip {
+  @apply bg-[#15151e] text-white p-2 rounded-md shadow-lg;
+}

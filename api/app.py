@@ -20,9 +20,7 @@ def create_app():
     Returns:
         Flask: The configured Flask application
     """
-    app = Flask(__name__, 
-                template_folder='../templates',
-                static_folder='../static')
+    app = Flask(__name__)
     
     # Enable CORS
     CORS(app)
@@ -31,23 +29,12 @@ def create_app():
     from api.routes.telemetry import telemetry_bp
     from api.routes.race_analysis import race_analysis_bp
     from api.routes.info import info_bp
+    from api.routes.utils import utils_bp
     
     app.register_blueprint(telemetry_bp, url_prefix='/api/telemetry')
     app.register_blueprint(race_analysis_bp, url_prefix='/api/race-analysis')
     app.register_blueprint(info_bp, url_prefix='/api/info')
-    
-    # Routes
-    @app.route('/')
-    def index():
-        return render_template('index.html')
-        
-    @app.route('/telemetry')
-    def telemetry():
-        return render_template('telemetry.html')
-        
-    @app.route('/race-analysis')
-    def race_analysis():
-        return render_template('race_analysis.html')
+    app.register_blueprint(utils_bp, url_prefix='/api/utils')
     
     # Health check endpoint
     @app.route('/health')

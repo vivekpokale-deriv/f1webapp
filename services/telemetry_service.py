@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from matplotlib.collections import LineCollection
 import seaborn as sns
 from api.config import get_config
-from utils.color_mapping import get_driver_colors
+from utils.color_mapping import get_color_mapping
 
 logger = logging.getLogger('f1webapp')
 config = get_config()
@@ -178,7 +178,7 @@ class TelemetryService:
         driver2_tel = driver2_lap.get_car_data().add_distance()
         
         # Get driver colors using our custom color mapping
-        driver_colors = get_driver_colors(session)
+        driver_colors = get_color_mapping(session)['drivers']
         driver1_color = driver_colors.get(driver1, 'white')
         driver2_color = driver_colors.get(driver2, 'white')
         
@@ -227,93 +227,6 @@ class TelemetryService:
             }
         }
         
-    def create_speed_trace_plot(self, session, driver1, driver2):
-        """
-        Create a speed trace comparison plot for two drivers.
-        
-        Args:
-            session: The FastF1 session
-            driver1: The first driver code
-            driver2: The second driver code
-            
-        Returns:
-            tuple: (figure, filename) - The matplotlib figure and the saved filename
-        """
-        driver1_lap = self.get_driver_fastest_lap(session, driver1)
-        driver2_lap = self.get_driver_fastest_lap(session, driver2)
-        
-        # Get telemetry data
-        driver1_tel = driver1_lap.get_car_data().add_distance()
-        driver2_tel = driver2_lap.get_car_data().add_distance()
-        
-        # Get driver colors using our custom color mapping
-        driver_colors = get_driver_colors(session)
-        driver1_color = driver_colors.get(driver1, 'white')
-        driver2_color = driver_colors.get(driver2, 'white')
-        
-        # Get lap times for display
-        driver1_time = str(driver1_lap["LapTime"])[11:19]  # Format as MM:SS.sss
-        driver2_time = str(driver2_lap["LapTime"])[11:19]
-        
-        # Get circuit info for corner markers
-        circuit_info = session.get_circuit_info()
-        v_min = min(driver1_tel['Speed'].min(), driver2_tel['Speed'].min())
-        v_max = max(driver1_tel['Speed'].max(), driver2_tel['Speed'].max())
-        
-        # Create plot with two subplots (speed and throttle)
-        fig, ax = plt.subplots(2, figsize=config.DEFAULT_FIG_SIZE, 
-                              gridspec_kw={'height_ratios': [10, 3]})
-        
-        # Speed plot
-        ax[0].plot(driver1_tel['Distance'], driver1_tel['Speed'], 
-                  color=driver1_color, label=f"{driver1} - {driver1_time}")
-        ax[0].plot(driver2_tel['Distance'], driver2_tel['Speed'], 
-                  color=driver2_color, label=f"{driver2} - {driver2_time}")
-        
-        # Add corner markers
-        ax[0].vlines(x=circuit_info.corners['Distance'], 
-                    ymin=v_min - 20, ymax=v_max + 10,
-                    linestyles='dotted', colors='grey')
-        
-        # Add corner numbers with alternating positions to avoid overlap
-        for i, (_, corner) in enumerate(circuit_info.corners.iterrows()):
-            txt = f"{corner['Number']}{corner['Letter']}"
-            # Alternate between top and bottom positions
-            if i % 2 == 0:
-                # Even index: place at bottom
-                y_pos = v_min - 30
-                va = 'center_baseline'
-            else:
-                # Odd index: place at top
-                y_pos = v_max + 20
-                va = 'center'
-            
-            ax[0].text(corner['Distance'], y_pos, txt,
-                      va=va, ha='center', size='small', rotation=-90)
-        
-        ax[0].set_xlabel('Distance (m)')
-        ax[0].set_ylabel('Speed (km/h)')
-        ax[0].set_ylim([v_min - 40, v_max + 30])  # Increased upper limit for corner numbers
-        ax[0].legend()
-        
-        # Throttle plot
-        ax[1].plot(driver1_tel['Distance'], driver1_tel['Throttle'], 
-                  color=driver1_color, label=f"{driver1}")
-        ax[1].plot(driver2_tel['Distance'], driver2_tel['Throttle'], 
-                  color=driver2_color, label=f"{driver2}")
-        ax[1].set_ylabel('Throttle %')
-        ax[1].legend()
-        
-        # Title
-        plt.suptitle(f"Fastest Lap Comparison\n"
-                    f"{session.event['EventName']} {session.event.year}")
-        
-        # Save and return
-        filename = "plot.png"
-        plt.savefig(filename)
-        
-        return fig, filename
-        
     def get_gear_shifts_data(self, session, driver):
         """
         Get gear shift data for a driver.
@@ -329,7 +242,7 @@ class TelemetryService:
         tel = lap.get_telemetry()
         
         # Get driver colors using our custom color mapping
-        driver_colors = get_driver_colors(session)
+        driver_colors = get_color_mapping(session)['drivers']
         
         # Return structured data
         return {
@@ -350,153 +263,6 @@ class TelemetryService:
                 "year": session.event.year
             }
         }
-        
-    def create_gear_shifts_plot(self, session, driver, ax=None, show_title=True):
-        """
-        Create a gear shift visualization plot.
-        
-        Args:
-            session: The FastF1 session
-            driver: The driver code
-            ax: Optional matplotlib axis to plot on
-            show_title: Whether to show the title
-            
-        Returns:
-            tuple: (figure, ax) - The matplotlib figure and axis
-        """
-        lap = self.get_driver_fastest_lap(session, driver)
-        tel = lap.get_telemetry()
-        
-        x = np.array(tel['X'].values)
-        y = np.array(tel['Y'].values)
-        
-        points = np.array([x, y]).T.reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        gear = tel['nGear'].to_numpy().astype(float)
-        
-        if ax is None:
-            fig, ax = plt.subplots(figsize=config.DEFAULT_FIG_SIZE)
-        else:
-            fig = ax.figure
-        
-        cmap = plt.get_cmap('Paired')
-        lc_comp = LineCollection(segments, norm=plt.Normalize(1, cmap.N + 1), cmap=cmap)
-        lc_comp.set_array(gear)
-        lc_comp.set_linewidth(4)
-        
-        ax.add_collection(lc_comp)
-        ax.axis('equal')
-        ax.tick_params(labelleft=False, left=False, labelbottom=False, bottom=False)
-        
-        if show_title:
-            ax.set_title(
-                f"Gear Shifts: {lap['Driver']}\n"
-                f"{session.event['EventName']} {session.event.year}"
-            )
-        
-        cbar = plt.colorbar(mappable=lc_comp, ax=ax, label="Gear", boundaries=np.arange(1, 10))
-        cbar.set_ticks(np.arange(1.5, 9.5))
-        cbar.set_ticklabels(np.arange(1, 9))
-        
-        return fig, ax
-        
-    def create_combined_visualization(self, session, driver1, driver2):
-        """
-        Create a combined visualization with speed trace, track dominance, and gear shifts.
-        
-        Args:
-            session: The FastF1 session
-            driver1: The first driver code
-            driver2: The second driver code
-            
-        Returns:
-            tuple: (figure, filename) - The matplotlib figure and the saved filename
-        """
-        # Create a figure with a grid layout
-        fig = plt.figure(figsize=(20, 28))
-        
-        # Define grid layout with track dominance chart larger
-        gs = fig.add_gridspec(3, 2, height_ratios=[8, 15, 5])
-        
-        # Speed trace plot (full width, top)
-        speed_ax1 = fig.add_subplot(gs[0, 0:])
-        
-        # Get telemetry data
-        driver1_lap = self.get_driver_fastest_lap(session, driver1)
-        driver2_lap = self.get_driver_fastest_lap(session, driver2)
-        
-        driver1_tel = driver1_lap.get_car_data().add_distance()
-        driver2_tel = driver2_lap.get_car_data().add_distance()
-        
-        # Get driver colors using our custom color mapping
-        driver_colors = get_driver_colors(session)
-        driver1_color = driver_colors.get(driver1, 'white')
-        driver2_color = driver_colors.get(driver2, 'white')
-        
-        # Get lap times for display
-        driver1_time = str(driver1_lap["LapTime"])[11:19]  # Format as MM:SS.sss
-        driver2_time = str(driver2_lap["LapTime"])[11:19]
-        
-        # Get circuit info for corner markers
-        circuit_info = session.get_circuit_info()
-        v_min = min(driver1_tel['Speed'].min(), driver2_tel['Speed'].min())
-        v_max = max(driver1_tel['Speed'].max(), driver2_tel['Speed'].max())
-        
-        # Speed plot
-        speed_ax1.plot(driver1_tel['Distance'], driver1_tel['Speed'], 
-                      color=driver1_color, label=f"{driver1} - {driver1_time}")
-        speed_ax1.plot(driver2_tel['Distance'], driver2_tel['Speed'], 
-                      color=driver2_color, label=f"{driver2} - {driver2_time}")
-        
-        # Add corner markers
-        speed_ax1.vlines(x=circuit_info.corners['Distance'], 
-                        ymin=v_min - 20, ymax=v_max + 10,
-                        linestyles='dotted', colors='grey')
-        
-        # Add corner numbers with alternating positions to avoid overlap
-        for i, (_, corner) in enumerate(circuit_info.corners.iterrows()):
-            txt = f"{corner['Number']}{corner['Letter']}"
-            # Alternate between top and bottom positions
-            if i % 2 == 0:
-                # Even index: place at bottom
-                y_pos = v_min - 30
-                va = 'center_baseline'
-            else:
-                # Odd index: place at top
-                y_pos = v_max + 20
-                va = 'center'
-            
-            speed_ax1.text(corner['Distance'], y_pos, txt,
-                          va=va, ha='center', size='small', rotation=-90)
-        
-        speed_ax1.set_xlabel('Distance (m)')
-        speed_ax1.set_ylabel('Speed (km/h)')
-        speed_ax1.set_ylim([v_min - 40, v_max + 30])  # Increased upper limit for corner numbers
-        speed_ax1.legend()
-        speed_ax1.set_title(f"Speed Trace Comparison\n{session.event['EventName']} {session.event.year}")
-        
-        # Track dominance plot (full width, middle)
-        track_ax = fig.add_subplot(gs[1, 0:])
-        _, track_ax, _ = self.create_track_dominance_plot(
-            session, [driver1, driver2], config.DEFAULT_MINI_SECTORS, track_ax
-        )
-        
-        # Gear shifts plots (half width each, bottom)
-        gear1_ax = fig.add_subplot(gs[2, 0])
-        gear2_ax = fig.add_subplot(gs[2, 1])
-        
-        # Create gear shift plots
-        _, gear1_ax = self.create_gear_shifts_plot(session, driver1, gear1_ax)
-        _, gear2_ax = self.create_gear_shifts_plot(session, driver2, gear2_ax)
-        
-        # Adjust layout
-        plt.tight_layout()
-        
-        # Save the combined visualization
-        filename = "combined_visualization.png"
-        plt.savefig(filename, bbox_inches='tight')
-        
-        return fig, filename
         
     def get_track_dominance_data(self, session, drivers, num_mini_sectors=config.DEFAULT_MINI_SECTORS):
         """
@@ -537,7 +303,7 @@ class TelemetryService:
                     'Sector1': lap['Sector1Time'],
                     'Sector2': lap['Sector2Time'],
                     'Sector3': lap['Sector3Time'],
-                    'TeamColour': get_driver_colors(session).get(driver, 'white')
+                    'TeamColour': get_color_mapping(session)['drivers'].get(driver, 'white')
                 }
             except Exception as e:
                 logger.error(f"Error getting telemetry for driver {driver}: {e}")
@@ -636,146 +402,42 @@ class TelemetryService:
                 'year': session.event.year
             }
         }
-        
-    def create_track_dominance_plot(self, session, drivers, num_mini_sectors=config.DEFAULT_MINI_SECTORS, ax=None, show_title=True):
+
+    def get_all_laps(self, session):
         """
-        Create a track dominance visualization showing which driver is fastest in each mini-sector.
+        Get all laps for a session.
         
         Args:
             session: The FastF1 session
-            drivers: List of driver codes
-            num_mini_sectors: Number of mini-sectors to create
-            ax: Optional matplotlib axis to plot on
-            show_title: Whether to show the title
             
         Returns:
-            tuple: (figure, ax, driver_info) - The matplotlib figure, axis, and driver info
+            dict: All laps data for the session
         """
-        mini_sectors_list = []
-        driver_info = {}
-        
-        # If no drivers specified, use the top 3 fastest
-        if not drivers:
+        if session.name in ['Qualifying', 'Sprint Qualifying']:
             laps = session.laps.pick_quicklaps()
-            fastest_laps = laps.groupby('Driver')['LapTime'].min().sort_values().index[:3]
-            drivers = fastest_laps.tolist()
-        
-        # Limit to 3 drivers for clarity
-        drivers = drivers[:3]
-        
-        # Get driver colors using our custom color mapping
-        driver_colors = get_driver_colors(session)
-        
-        # Get telemetry data for each driver
-        for driver in drivers:
-            try:
-                lap = self.get_driver_fastest_lap(session, driver)
-                telemetry = lap.get_telemetry()
-                telemetry['Driver'] = driver
-                mini_sectors_list.append(telemetry)
-                
-                # Gather driver info
-                driver_info[driver] = {
-                    'DriverNumber': lap['DriverNumber'],
-                    'DriverName': lap['Driver'],
-                    'Sector1': lap['Sector1Time'],
-                    'Sector2': lap['Sector2Time'],
-                    'Sector3': lap['Sector3Time'],
-                    'TeamColour': driver_colors.get(driver, 'white')
-                }
-            except Exception as e:
-                logger.error(f"Error getting telemetry for driver {driver}: {e}")
-        
-        if not mini_sectors_list:
-            logger.error("No valid telemetry data found for any driver")
-            if ax is None:
-                fig, ax = plt.subplots(figsize=config.DEFAULT_FIG_SIZE)
-                return fig, "track_dominance_minisectors.png", {}
-            else:
-                return ax.figure, ax, {}
-        
-        # Create mini-sectors
-        analyzer = MiniSectorAnalyzer(pd.concat(mini_sectors_list), num_mini_sectors)
-        mini_sectors = analyzer.create_mini_sectors()
-        
-        # Find fastest driver per mini-sector and get all processed telemetry
-        fastest_per_mini_sector, all_mini_sectors = analyzer.find_fastest_drivers(mini_sectors_list)
-        
-        # Create the plot if axis not provided
-        if ax is None:
-            fig, ax = plt.subplots(figsize=config.DEFAULT_FIG_SIZE)
         else:
-            fig = ax.figure
-        fig.patch.set_facecolor('black')
-        ax.set_facecolor('black')
+            laps = session.laps
         
-        # Get track map from the first driver's lap
-        lap = session.laps.pick_drivers(drivers[0]).pick_fastest()
-        x = lap.telemetry['X'].values
-        y = lap.telemetry['Y'].values
-        
-        # Plot the track outline
-        ax.plot(x, y, color='black', linestyle='-', linewidth=16, zorder=0)
-        
-        # Create points and segments for coloring
-        points = np.array([x, y]).T.reshape(-1, 1, 2)
-        segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        
-        # Color each mini-sector by fastest driver
-        for minisector in range(num_mini_sectors):
-            try:
-                # Get data for this mini-sector
-                sector_data = all_mini_sectors[all_mini_sectors['MiniSector'] == minisector]
-                
-                if not sector_data.empty:
-                    # Find the fastest driver for this mini-sector
-                    fastest_driver_rows = fastest_per_mini_sector[
-                        fastest_per_mini_sector['MiniSector'] == minisector
-                    ]
-                    
-                    if not fastest_driver_rows.empty:
-                        fastest_driver = fastest_driver_rows['Driver'].values[0]
-                        
-                        # Get only this driver's data for this mini-sector
-                        driver_sector_data = sector_data[sector_data['Driver'] == fastest_driver]
-                        
-                        if not driver_sector_data.empty:
-                            # Get valid segment indices
-                            segment_indices = driver_sector_data.index
-                            
-                            if len(segment_indices) > 1:  # Need at least 2 points to form a segment
-                                # Get the min and max indices, ensuring they're within bounds
-                                min_idx = max(0, segment_indices.min())
-                                max_idx = min(len(segments) - 1, segment_indices.max())
-                                
-                                if min_idx < max_idx:
-                                    # Get the segment points for this mini-sector
-                                    segment_points = segments[min_idx:max_idx]
-                                    
-                                    # Get the color for this driver
-                                    color = driver_colors.get(fastest_driver, 'white')
-                                    
-                                    # Create a line collection for this mini-sector
-                                    lc = LineCollection(segment_points, colors=[color], linewidth=5)
-                                    ax.add_collection(lc)
-            except Exception as e:
-                logger.error(f"Error visualizing mini-sector {minisector}: {e}")
-        
-        # Add legend
-        for driver in drivers:
-            ax.plot([], [], color=driver_colors.get(driver, 'white'), label=driver)
-        
-        ax.legend()
-        if show_title:
-            ax.set_title(f"{session.event.year} {session.event['EventName']} - Track Dominance by Mini-Sectors", 
-                        color='white')
-        ax.axis('off')
-        ax.set_aspect('equal')
-        
-        # Only save if this is a standalone plot
-        if ax is None:
-            filename = "track_dominance_minisectors.png"
-            plt.savefig(filename, bbox_inches='tight', facecolor=fig.get_facecolor())
-            return fig, filename, driver_info
-        else:
-            return fig, ax, driver_info
+        # Format the response
+        lap_data = []
+        for _, row in laps.iterrows():
+            lap_data.append({
+                "lapNumber": int(row['LapNumber']),
+                "driverCode": row['Driver'],
+                "lapTime": row['LapTime'].total_seconds() if pd.notna(row['LapTime']) else None,
+                "compound": row['Compound'],
+                "tyreLife": row['TyreLife'],
+                "freshTyre": row['FreshTyre'],
+                "stint": row['Stint'],
+                "sector1Time": row['Sector1Time'].total_seconds() if pd.notna(row['Sector1Time']) else None,
+                "sector2Time": row['Sector2Time'].total_seconds() if pd.notna(row['Sector2Time']) else None,
+                "sector3Time": row['Sector3Time'].total_seconds() if pd.notna(row['Sector3Time']) else None,
+            })
+            
+        return {
+            "laps": lap_data,
+            "session": {
+                "name": session.event['EventName'],
+                "year": session.event.year
+            }
+        }

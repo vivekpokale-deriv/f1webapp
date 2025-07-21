@@ -5,6 +5,31 @@ Response utilities for F1 Web App API.
 from flask import jsonify
 
 
+def create_response(data=None, status_code=200, error=None):
+    """
+    Create a standardized API response.
+    
+    Args:
+        data: The data to include in the response
+        status_code: HTTP status code (default: 200)
+        error: Optional error message
+        
+    Returns:
+        Response: Flask response object
+    """
+    response = {}
+    
+    if error:
+        response['success'] = False
+        response['error'] = error
+    else:
+        response['success'] = True
+        if data is not None:
+            response['data'] = data
+    
+    return jsonify(response), status_code
+
+
 def success_response(data=None, message=None, status_code=200):
     """
     Create a standardized success response.

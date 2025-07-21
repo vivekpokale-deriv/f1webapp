@@ -1,117 +1,47 @@
 """
-Information routes for F1 Web App API.
+API routes for F1 information data.
 """
 
-from flask import Blueprint, request
 import logging
-from api.utils.response import success_response, error_response
-from api.utils.error_handler import APIError, configure_error_handling
+from datetime import datetime, timedelta
+from flask import Blueprint, jsonify, request
+from services.schedule_service import ScheduleService
+from services.standings_service import StandingsService
+from api.utils.response import create_response
 
-# Create blueprint
-info_bp = Blueprint('info', __name__)
 logger = logging.getLogger('f1webapp')
 
-# Configure error handling
-configure_error_handling(info_bp)
+# Create Blueprint
+info_bp = Blueprint('info', __name__)
 
+# Initialize services
+schedule_service = ScheduleService()
+standings_service = StandingsService()
 
-@info_bp.route('/drivers', methods=['GET'])
-def get_driver_standings():
+@info_bp.route('/schedule', methods=['GET'])
+def get_schedule():
     """
-    Get driver standings.
+    Get the F1 schedule.
     
     Query Parameters:
-        year: Optional year to get standings for
+        year (int, optional): The year to get the schedule for
+        include_testing (bool, optional): Whether to include testing events
         
     Returns:
-        JSON: Driver standings data
+        JSON: Schedule data
     """
     try:
-        # Get optional year parameter
-        year = request.args.get('year', default=None, type=int)
+        year = request.args.get('year')
+        include_testing = request.args.get('include_testing', 'false').lower() == 'true'
         
-        logger.info(f"Getting driver standings for year: {year if year else 'current'}")
-        
-        # TODO: Import and use StandingsService to get data
-        # from services.standings_service import StandingsService
-        # standings_service = StandingsService()
-        # standings = standings_service.get_driver_standings(year)
-        
-        # For now, return dummy data
-        data = {
-            "year": year if year else 2025,
-            "standings": [
-                {
-                    "position": 1,
-                    "driver": {
-                        "code": "VER",
-                        "name": "Max Verstappen",
-                        "number": 1
-                    },
-                    "team": "Red Bull Racing",
-                    "points": 250
-                },
-                {
-                    "position": 2,
-                    "driver": {
-                        "code": "HAM",
-                        "name": "Lewis Hamilton",
-                        "number": 44
-                    },
-                    "team": "Mercedes",
-                    "points": 220
-                }
-            ]
-        }
-        
-        return success_response(data)
-        
+        if year:
+            year = int(year)
+            
+        schedule_data = schedule_service.get_schedule(year, include_testing)
+        return create_response(schedule_data)
     except Exception as e:
-        logger.error(f"Error getting driver standings: {e}")
-        return error_response(f"Error getting driver standings: {str(e)}", 500)
-
-
-@info_bp.route('/constructors', methods=['GET'])
-def get_constructor_standings():
-    """
-    Get constructor standings.
-    
-    Query Parameters:
-        year: Optional year to get standings for
-        
-    Returns:
-        JSON: Constructor standings data
-    """
-    try:
-        # Get optional year parameter
-        year = request.args.get('year', default=None, type=int)
-        
-        logger.info(f"Getting constructor standings for year: {year if year else 'current'}")
-        
-        # TODO: Import and use StandingsService to get data
-        # For now, return dummy data
-        data = {
-            "year": year if year else 2025,
-            "standings": [
-                {
-                    "position": 1,
-                    "team": "Red Bull Racing",
-                    "points": 400
-                },
-                {
-                    "position": 2,
-                    "team": "Mercedes",
-                    "points": 350
-                }
-            ]
-        }
-        
-        return success_response(data)
-        
-    except Exception as e:
-        logger.error(f"Error getting constructor standings: {e}")
-        return error_response(f"Error getting constructor standings: {str(e)}", 500)
-
+        logger.error(f"Error getting schedule: {e}")
+        return create_response({"error": str(e)}, 500)
 
 @info_bp.route('/next-event', methods=['GET'])
 def get_next_event():
@@ -122,138 +52,158 @@ def get_next_event():
         JSON: Next event data
     """
     try:
-        logger.info("Getting next event")
-        
-        # TODO: Import and use ScheduleService to get data
-        # from services.schedule_service import ScheduleService
-        # schedule_service = ScheduleService()
-        # schedule_service.load_schedule()
-        # next_event = schedule_service.get_next_event()
-        
-        # For now, return dummy data
-        data = {
-            "race": {
-                "name": "British Grand Prix",
-                "location": "Silverstone",
-                "country": "United Kingdom",
-                "flagUrl": "https://example.com/flags/gb.png"
-            },
-            "events": [
-                {
-                    "type": "Practice 1",
-                    "startTime": "2025-07-18T11:30:00Z"
-                },
-                {
-                    "type": "Practice 2",
-                    "startTime": "2025-07-18T15:00:00Z"
-                },
-                {
-                    "type": "Practice 3",
-                    "startTime": "2025-07-19T10:30:00Z"
-                },
-                {
-                    "type": "Qualifying",
-                    "startTime": "2025-07-19T14:00:00Z"
-                },
-                {
-                    "type": "Race",
-                    "startTime": "2025-07-20T14:00:00Z"
-                }
-            ]
-        }
-        
-        return success_response(data)
-        
+        next_event = schedule_service.get_next_event()
+        return create_response(next_event)
     except Exception as e:
         logger.error(f"Error getting next event: {e}")
-        return error_response(f"Error getting next event: {str(e)}", 500)
+        return create_response({"error": str(e)}, 500)
 
-
-@info_bp.route('/schedule', methods=['GET'])
-def get_schedule():
+@info_bp.route('/drivers', methods=['GET'])
+def get_drivers():
     """
-    Get the F1 schedule.
+    Get driver standings.
     
     Query Parameters:
-        year: Optional year to get schedule for
+        year (int, optional): The year to get the standings for
         
     Returns:
-        JSON: Schedule data
+        JSON: Driver standings data
     """
     try:
-        # Get optional year parameter
-        year = request.args.get('year', default=None, type=int)
-        
-        logger.info(f"Getting schedule for year: {year if year else 'current'}")
-        
-        # TODO: Import and use ScheduleService to get data
-        # For now, return dummy data
-        data = {
-            "year": year if year else 2025,
-            "races": [
-                {
-                    "round": 1,
-                    "name": "Bahrain Grand Prix",
-                    "location": "Sakhir",
-                    "country": "Bahrain",
-                    "flagUrl": "https://example.com/flags/bh.png",
-                    "events": [
-                        {
-                            "type": "Practice 1",
-                            "startTime": "2025-03-01T11:30:00Z"
-                        },
-                        {
-                            "type": "Practice 2",
-                            "startTime": "2025-03-01T15:00:00Z"
-                        },
-                        {
-                            "type": "Practice 3",
-                            "startTime": "2025-03-02T12:30:00Z"
-                        },
-                        {
-                            "type": "Qualifying",
-                            "startTime": "2025-03-02T16:00:00Z"
-                        },
-                        {
-                            "type": "Race",
-                            "startTime": "2025-03-03T15:00:00Z"
-                        }
-                    ]
-                },
-                {
-                    "round": 2,
-                    "name": "Saudi Arabian Grand Prix",
-                    "location": "Jeddah",
-                    "country": "Saudi Arabia",
-                    "flagUrl": "https://example.com/flags/sa.png",
-                    "events": [
-                        {
-                            "type": "Practice 1",
-                            "startTime": "2025-03-08T13:30:00Z"
-                        },
-                        {
-                            "type": "Practice 2",
-                            "startTime": "2025-03-08T17:00:00Z"
-                        },
-                        {
-                            "type": "Practice 3",
-                            "startTime": "2025-03-09T13:30:00Z"
-                        },
-                        {
-                            "type": "Qualifying",
-                            "startTime": "2025-03-09T17:00:00Z"
-                        },
-                        {
-                            "type": "Race",
-                            "startTime": "2025-03-10T17:00:00Z"
-                        }
-                    ]
-                }
-            ]
-        }
-        
-        return success_response(data)
-        
+        year = request.args.get('year')
+        if year:
+            year = int(year)
+            
+        driver_standings = standings_service.get_driver_standings(year)
+        return create_response(driver_standings)
     except Exception as e:
-        logger.error(f"Error getting schedule: {e}")
-        return error_response(f"Error getting schedule: {str(e)}", 500)
+        logger.error(f"Error getting driver standings: {e}")
+        return create_response({"error": str(e)}, 500)
+
+@info_bp.route('/all-drivers', methods=['GET'])
+def get_all_drivers():
+    """
+    Get all drivers for a given year.
+    
+    Query Parameters:
+        year (int, optional): The year to get the drivers for
+        
+    Returns:
+        JSON: List of drivers
+    """
+    try:
+        year = request.args.get('year')
+        if year:
+            year = int(year)
+            
+        drivers = standings_service.get_all_drivers(year)
+        return create_response(drivers)
+    except Exception as e:
+        logger.error(f"Error getting all drivers: {e}")
+        return create_response({"error": str(e)}, 500)
+
+@info_bp.route('/races', methods=['GET'])
+def get_races():
+    """
+    Get all races for a given year.
+    
+    Query Parameters:
+        year (int, optional): The year to get the races for
+        
+    Returns:
+        JSON: List of races
+    """
+    try:
+        year = request.args.get('year')
+        if year:
+            year = int(year)
+        
+        schedule = schedule_service.get_schedule(year)
+        return create_response(schedule)
+    except Exception as e:
+        logger.error(f"Error getting all races: {e}")
+        return create_response({"error": str(e)}, 500)
+
+@info_bp.route('/constructors', methods=['GET'])
+def get_constructors():
+    """
+    Get constructor standings.
+    
+    Query Parameters:
+        year (int, optional): The year to get the standings for
+        
+    Returns:
+        JSON: Constructor standings data
+    """
+    try:
+        year = request.args.get('year')
+        if year:
+            year = int(year)
+            
+        constructor_standings = standings_service.get_constructor_standings(year)
+        return create_response(constructor_standings)
+    except Exception as e:
+        logger.error(f"Error getting constructor standings: {e}")
+        return create_response({"error": str(e)}, 500)
+
+@info_bp.route('/events-by-status', methods=['GET'])
+def get_events_by_status():
+    """
+    Get F1 events grouped by status (past, current, future).
+    
+    Query Parameters:
+        year (int, optional): The year to get the events for
+        
+    Returns:
+        JSON: Events grouped by status
+    """
+    try:
+        year = request.args.get('year')
+        if year:
+            year = int(year)
+        else:
+            year = datetime.now().year
+            
+        # Get the schedule
+        schedule_data = schedule_service.get_schedule(year)
+        
+        # Group events by status
+        past_events = []
+        current_events = []
+        future_events = []
+        
+        now = datetime.now()
+        
+        for race in schedule_data.get('races', []):
+            # Get the race date from the first event (usually FP1)
+            events = race.get('events', [])
+            if not events:
+                continue
+                
+            # Sort events by start time
+            events.sort(key=lambda x: x['startTime'])
+            
+            # Get the first and last event times
+            first_event_time = datetime.fromisoformat(events[0]['startTime'])
+            last_event_time = datetime.fromisoformat(events[-1]['startTime'])
+            
+            # Determine status based on event times
+            if last_event_time < now - timedelta(days=1):
+                race['status'] = 'past'
+                past_events.append(race)
+            elif first_event_time <= now + timedelta(days=2):
+                race['status'] = 'current'
+                current_events.append(race)
+            else:
+                race['status'] = 'future'
+                future_events.append(race)
+        
+        return create_response({
+            'year': year,
+            'past': past_events,
+            'current': current_events,
+            'future': future_events
+        })
+    except Exception as e:
+        logger.error(f"Error getting events by status: {e}")
+        return create_response({"error": str(e)}, 500)

@@ -1,0 +1,29 @@
+# Flask and extensions
+Flask==2.3.3
+Flask-Cors==4.0.0
+
+# FastF1 and dependencies
+fastf1==3.6.0
+matplotlib==3.7.2  # Keep original version to avoid compatibility issues
+numpy==1.24.3  # Keep original version to avoid compatibility issues
+pandas==2.0.3  # Keep original version to avoid compatibility issues
+seaborn==0.12.2  # Keep original version to avoid compatibility issues
+
+# Utilities
+requests==2.31.0
+beautifulsoup4==4.12.2
+python-dotenv==1.0.0
+
+# Packaging and build dependencies
+setuptools>=68.0.0  # Modern setuptools that doesn't rely on distutils
+wheel>=0.41.0  # Modern wheel package
+packaging>=23.1  # Modern packaging that doesn't rely on distutils
+
+# Development
+pytest==7.4.0
+black==23.7.0
+flake8==6.1.0
+
+# Note: distutils has been deprecated in Python 3.12
+# We're keeping the original package versions to avoid build issues,
+# but adding modern packaging dependencies that don't rely on distutils

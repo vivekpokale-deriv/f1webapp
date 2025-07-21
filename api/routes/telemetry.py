@@ -109,45 +109,6 @@ def get_track_dominance(year, race, session):
         return error_response(f"Error getting track dominance data: {str(e)}", 500)
 
 
-@telemetry_bp.route('/combined/<int:year>/<race>/<session>/<driver1>/<driver2>', methods=['GET'])
-def get_combined_visualization(year, race, session, driver1, driver2):
-    """
-    Get combined visualization with speed trace, track dominance, and gear shifts.
-    
-    Args:
-        year: Year of the session
-        race: Race name or round number
-        session: Session type (e.g., 'R', 'Q', 'FP1')
-        driver1: First driver code
-        driver2: Second driver code
-        
-    Returns:
-        JSON: Path to the combined visualization image
-    """
-    try:
-        logger.info(f"Creating combined visualization for {year} {race} {session} {driver1} vs {driver2}")
-        
-        # Use the shared telemetry service instance
-        session_obj = telemetry_service.get_session(year, race, session)
-        
-        # Create the combined visualization
-        _, filename = telemetry_service.create_combined_visualization(session_obj, driver1, driver2)
-        
-        # Return the path to the image
-        return success_response({
-            "image_path": filename,
-            "session": {
-                "name": session_obj.event['EventName'],
-                "year": session_obj.event.year
-            },
-            "drivers": [driver1, driver2]
-        })
-        
-    except Exception as e:
-        logger.error(f"Error creating combined visualization: {e}")
-        return error_response(f"Error creating combined visualization: {str(e)}", 500)
-
-
 # Session picker routes
 
 @telemetry_bp.route('/years', methods=['GET'])
@@ -271,3 +232,29 @@ def get_driver_laps(year, race, session, driver):
     except Exception as e:
         logger.error(f"Error getting laps for {driver} in {year} {race} {session}: {e}")
         return error_response(f"Error getting laps for {driver} in {year} {race} {session}: {str(e)}", 500)
+
+@telemetry_bp.route('/session-laps/<int:year>/<race>/<session>', methods=['GET'])
+def get_session_laps(year, race, session):
+    """
+    Get all laps for a given session.
+    
+    Args:
+        year: The year of the session
+        race: The name of the event
+        session: The session type code
+        
+    Returns:
+        JSON: List of laps
+    """
+    try:
+        logger.info(f"Getting all laps for {year} {race} {session}")
+        
+        # Use the shared telemetry service instance
+        session_obj = telemetry_service.get_session(year, race, session)
+        laps = telemetry_service.get_all_laps(session_obj)
+        
+        return success_response(laps)
+        
+    except Exception as e:
+        logger.error(f"Error getting all laps for {year} {race} {session}: {e}")
+        return error_response(f"Error getting all laps for {year} {race} {session}: {str(e)}", 500)

@@ -59,14 +59,6 @@ f1-web-app/
 2.  **Frontend**:
     -   Start the Next.js development server: `cd f1w-frontend && npm run dev`
 
-## API Documentation
-
-The API documentation can be found in the `docs` directory.
-
-## License
-
-This project is licensed under the MIT License.
-
 ## Acknowledgments
 
 - [FastF1](https://github.com/theOehrly/Fast-F1)

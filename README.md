@@ -1,13 +1,14 @@
-# F1 Data Visualization
+# F1 Data Visualization & Prediction
 
-This is a web application for visualizing and analyzing Formula 1 data.
+This is a web application for visualizing, analyzing, and predicting Formula 1 data.
 
 ## Overview
 
-I built this web application to provide interactive visualizations and analysis of Formula 1 data, including telemetry, race analysis, and information about drivers, teams, and schedules.
+I built this web application to provide interactive visualizations and analysis of Formula 1 data, including telemetry, race analysis, and information about drivers, teams, and schedules. It now includes a machine learning feature to predict qualifying lap times.
 
 ## Features
 
+- **Qualifying Time Prediction**: Predicts qualifying lap times based on practice session data using an XGBoost machine learning model.
 - **Telemetry Visualization**: Compare speed traces, gear shifts, and track dominance between drivers.
 - **Race Analysis**: Analyze race pace, team pace, and lap sections.
 - **Information**: View driver standings, constructor standings, and race schedules.
@@ -26,9 +27,9 @@ f1-web-app/
 │   └── ...               # Page components
 ├── data/                 # Data files
 ├── docs/                 # Documentation
-├── models/               # Shared domain models
+├── models/               # Shared domain models and trained ML models
 ├── scripts/              # Utility scripts
-├── services/             # Data processing services
+├── services/             # Data processing and ML services
 └── utils/                # Shared utilities
 ```
 
@@ -38,6 +39,7 @@ f1-web-app/
 
 - Python 3.8+
 - Node.js 14+
+- Docker and Docker Compose
 - pip
 - npm or yarn
 
@@ -49,8 +51,8 @@ f1-web-app/
     cd f1-web-app
     ```
 
-2.  **Backend Setup:**
-    -   Navigate to the root directory.
+2.  **Backend Setup (for local development):**
+    -   Navigate to the `f1webapp` directory.
     -   Create and activate a virtual environment:
         ```bash
         python -m venv .venv
@@ -61,7 +63,7 @@ f1-web-app/
         pip install -r requirements.txt
         ```
 
-3.  **Frontend Setup:**
+3.  **Frontend Setup (for local development):**
     -   Navigate to the `f1w-frontend` directory:
         ```bash
         cd f1w-frontend
@@ -71,10 +73,23 @@ f1-web-app/
         npm install
         ```
 
-### Running the Application
+### Running with Docker (Recommended)
+
+1.  **Navigate to the `f1webapp` directory:**
+    ```bash
+    cd f1webapp
+    ```
+2.  **Build and run the application:**
+    ```bash
+    docker-compose up --build
+    ```
+    - The frontend will be available at `http://localhost:3000`.
+    - The backend will be available at `http://localhost:5002`.
+
+### Running Locally
 
 1.  **Start the Backend:**
-    -   From the root directory, run:
+    -   From the `f1webapp` directory, run:
         ```bash
         python run.py
         ```
@@ -99,3 +114,4 @@ f1-web-app/
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Chart.js](https://www.chartjs.org/)
 - [D3.js](https://d3js.org/)
+- [XGBoost](https://xgboost.ai/)

@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 logger = logging.getLogger('f1webapp')
 
-class SessionService:
+class _SessionService:
     """
     Service for handling F1 session data with caching.
     """
@@ -65,3 +65,5 @@ class SessionService:
         """Clear the session cache."""
         self.session_cache.clear()
         logger.info("Session cache cleared")
+
+SessionService = _SessionService()

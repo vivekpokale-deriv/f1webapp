@@ -18,8 +18,7 @@ logger = logging.getLogger('f1webapp')
 configure_error_handling(race_analysis_bp)
 
 # Create shared service instances for better caching
-session_service = SessionService(max_cache_size=20)  # Increased cache size for API server
-race_analysis_service = RaceAnalysisService(session_service=session_service)
+race_analysis_service = RaceAnalysisService()
 
 
 @race_analysis_bp.route('/race-pace/<int:year>/<race>', methods=['GET'])

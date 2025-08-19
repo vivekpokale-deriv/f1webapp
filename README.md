@@ -24,8 +24,8 @@ f1-web-app/
 │   │   ├── components/   # Reusable UI components
 │   │   └── utils/        # Utility functions
 │   └── ...               # Page components
+├── data/                 # Data files
 ├── docs/                 # Documentation
-├── examples/             # Example scripts
 ├── models/               # Shared domain models
 ├── scripts/              # Utility scripts
 ├── services/             # Data processing services
@@ -43,21 +43,53 @@ f1-web-app/
 
 ### Installation
 
-1.  **Backend**:
-    -   Clone the repository and navigate to the `f1w` directory.
-    -   Create a virtual environment: `python -m venv .venv`
-    -   Activate the virtual environment: `source .venv/bin/activate`
-    -   Install the dependencies: `pip install -r requirements.txt`
-2.  **Frontend**:
-    -   Navigate to the `f1w-frontend` directory.
-    -   Install the dependencies: `npm install`
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/f1-web-app.git
+    cd f1-web-app
+    ```
+
+2.  **Backend Setup:**
+    -   Navigate to the root directory.
+    -   Create and activate a virtual environment:
+        ```bash
+        python -m venv .venv
+        source .venv/bin/activate
+        ```
+    -   Install Python dependencies:
+        ```bash
+        pip install -r requirements.txt
+        ```
+
+3.  **Frontend Setup:**
+    -   Navigate to the `f1w-frontend` directory:
+        ```bash
+        cd f1w-frontend
+        ```
+    -   Install Node.js dependencies:
+        ```bash
+        npm install
+        ```
 
 ### Running the Application
 
-1.  **Backend**:
-    -   Start the Flask server: `python f1w/run.py`
-2.  **Frontend**:
-    -   Start the Next.js development server: `cd f1w-frontend && npm run dev`
+1.  **Start the Backend:**
+    -   From the root directory, run:
+        ```bash
+        python run.py
+        ```
+    -   The Flask server will start on `http://localhost:5002`.
+
+2.  **Start the Frontend:**
+    -   In a new terminal, navigate to the `f1w-frontend` directory:
+        ```bash
+        cd f1w-frontend
+        ```
+    -   Start the Next.js development server:
+        ```bash
+        npm run dev
+        ```
+    -   The frontend will be available at `http://localhost:3000`.
 
 ## Acknowledgments
 

@@ -1,4 +1,10 @@
 # Dependencies
 node_modules/
-cache/
 __pycache__/
+
+# Cache directories
+cache/
+
+# Log files
+f1_cache.log
+f1_update.log

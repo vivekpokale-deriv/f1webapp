@@ -8,6 +8,8 @@ matplotlib==3.7.2  # Keep original version to avoid compatibility issues
 numpy==1.24.3  # Keep original version to avoid compatibility issues
 pandas==2.0.3  # Keep original version to avoid compatibility issues
 seaborn==0.12.2  # Keep original version to avoid compatibility issues
+xgboost==2.0.3
+scikit-learn==1.3.0
 
 # Utilities
 requests==2.31.0

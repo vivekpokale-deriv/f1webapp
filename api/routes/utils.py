@@ -5,6 +5,19 @@ Utility API routes for the F1 Web App.
 from flask import Blueprint, request, jsonify
 from api.utils.response import create_response
 from utils.color_mapping import get_driver_color, get_team_color, get_color_mapping
+from datetime import timedelta
+
+def format_lap_time(seconds):
+    """
+    Format lap time in seconds to minute:second.millisecond format.
+    """
+    if seconds is None:
+        return None
+    delta = timedelta(seconds=seconds)
+    minutes = delta.seconds // 60
+    seconds_val = delta.seconds % 60
+    milliseconds = delta.microseconds // 1000
+    return f"{minutes:01d}:{seconds_val:02d}.{milliseconds:03d}"
 
 # Create a Blueprint for utility routes
 utils_bp = Blueprint('utils', __name__)

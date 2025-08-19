@@ -30,11 +30,13 @@ def create_app():
     from api.routes.race_analysis import race_analysis_bp
     from api.routes.info import info_bp
     from api.routes.utils import utils_bp
+    from api.routes.predictions import predictions_bp
     
     app.register_blueprint(telemetry_bp, url_prefix='/api/telemetry')
     app.register_blueprint(race_analysis_bp, url_prefix='/api/race-analysis')
     app.register_blueprint(info_bp, url_prefix='/api/info')
     app.register_blueprint(utils_bp, url_prefix='/api/utils')
+    app.register_blueprint(predictions_bp, url_prefix='/api/predictions')
     
     # Health check endpoint
     @app.route('/health')

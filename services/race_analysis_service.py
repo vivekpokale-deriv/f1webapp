@@ -32,7 +32,7 @@ class RaceAnalysisService:
             session_service: Optional SessionService instance for session caching
         """
         from services.session_service import SessionService
-        self.session_service = session_service or SessionService()
+        self.session_service = session_service or SessionService
         
     def get_session(self, year, race, session_type='R'):
         """

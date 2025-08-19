@@ -110,6 +110,127 @@ def get_track_dominance(year, race, session):
 
 # Session picker routes
 
+@telemetry_bp.route('/years', methods=['GET'])
+def get_available_years():
+    """
+    Get all available years from 2018 to present.
+    
+    Returns:
+        JSON: List of available years
+    """
+    try:
+        logger.info("Getting available years")
+        
+        # Use the shared session service instance
+        years = SessionService.get_available_years()
+        
+        return success_response({"years": years})
+        
+    except Exception as e:
+        logger.error(f"Error getting available years: {e}")
+        return error_response(f"Error getting available years: {str(e)}", 500)
+
+
+@telemetry_bp.route('/events/<int:year>', methods=['GET'])
+def get_events_for_year(year):
+    """
+    Get all events (races) for a specific year.
+    
+    Args:
+        year: The year to get events for
+        
+    Returns:
+        JSON: List of events
+    """
+    try:
+        logger.info(f"Getting events for year {year}")
+        
+        # Use the shared session service instance
+        events = SessionService.get_events_for_year(year)
+        
+        return success_response({"events": events})
+        
+    except Exception as e:
+        logger.error(f"Error getting events for year {year}: {e}")
+        return error_response(f"Error getting events for year {year}: {str(e)}", 500)
+
+
+@telemetry_bp.route('/sessions/<int:year>/<race>', methods=['GET'])
+def get_session_types(year, race):
+    """
+    Get available session types for a specific event.
+    
+    Args:
+        year: The year of the event
+        race: The name of the event
+        
+    Returns:
+        JSON: List of session types
+    """
+    try:
+        logger.info(f"Getting session types for {year} {race}")
+        
+        # Use the shared session service instance
+        sessions = SessionService.get_session_types(year, race)
+        
+        return success_response({"sessions": sessions})
+        
+    except Exception as e:
+        logger.error(f"Error getting session types for {year} {race}: {e}")
+        return error_response(f"Error getting session types for {year} {race}: {str(e)}", 500)
+
+
+@telemetry_bp.route('/drivers/<int:year>/<race>/<session>', methods=['GET'])
+def get_drivers_in_session(year, race, session):
+    """
+    Get all drivers who participated in a specific session.
+    
+    Args:
+        year: The year of the session
+        race: The name of the event
+        session: The session type code
+        
+    Returns:
+        JSON: List of drivers
+    """
+    try:
+        logger.info(f"Getting drivers for {year} {race} {session}")
+        
+        # Use the shared session service instance
+        drivers = SessionService.get_drivers_in_session(year, race, session)
+        
+        return success_response({"drivers": drivers})
+        
+    except Exception as e:
+        logger.error(f"Error getting drivers for {year} {race} {session}: {e}")
+        return error_response(f"Error getting drivers for {year} {race} {session}: {str(e)}", 500)
+
+
+@telemetry_bp.route('/laps/<int:year>/<race>/<session>/<driver>', methods=['GET'])
+def get_driver_laps(year, race, session, driver):
+    """
+    Get all laps for a specific driver in a session.
+    
+    Args:
+        year: The year of the session
+        race: The name of the event
+        session: The session type code
+        driver: The driver code
+        
+    Returns:
+        JSON: List of laps
+    """
+    try:
+        logger.info(f"Getting laps for {driver} in {year} {race} {session}")
+        
+        # Use the shared session service instance
+        laps = SessionService.get_driver_laps(year, race, session, driver)
+        
+        return success_response({"laps": laps})
+        
+    except Exception as e:
+        logger.error(f"Error getting laps for {driver} in {year} {race} {session}: {e}")
+        return error_response(f"Error getting laps for {driver} in {year} {race} {session}: {str(e)}", 500)
 
 @telemetry_bp.route('/session-laps/<int:year>/<race>/<session>', methods=['GET'])
 def get_session_laps(year, race, session):

@@ -13,6 +13,16 @@ I built this web application to provide interactive visualizations and analysis 
 - **Race Analysis**: Analyze race pace, team pace, and lap sections.
 - **Information**: View driver standings, constructor standings, and race schedules.
 
+## Architecture
+
+### Application Architecture
+
+![Application Architecture](docs/images/application_architecture.png)
+
+### Deployment Architecture
+
+![Deployment Architecture](docs/images/docker_architecture.png)
+
 ## Project Structure
 
 ```
@@ -27,6 +37,7 @@ f1-web-app/
 │   └── ...               # Page components
 ├── data/                 # Data files
 ├── docs/                 # Documentation
+│   └── images/           # Architecture diagrams
 ├── models/               # Shared domain models and trained ML models
 ├── scripts/              # Utility scripts
 ├── services/             # Data processing and ML services
